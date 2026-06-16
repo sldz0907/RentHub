@@ -8,8 +8,7 @@ export function LandingPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [location, setLocation] = useState('');
-  const [priceMin, setPriceMin] = useState('');
-  const [priceMax] = useState('');
+  const [priceMax, setPriceMax] = useState('');
   const [propertyType, setPropertyType] = useState('all');
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,9 +24,6 @@ export function LandingPage() {
     }
     if (propertyType && propertyType !== 'all') {
       params.append('property_type', propertyType);
-    }
-    if (priceMin) {
-      params.append('minPrice', priceMin);
     }
     if (priceMax) {
       params.append('maxPrice', priceMax);
@@ -142,12 +138,12 @@ export function LandingPage() {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-600 mb-1 text-left">Giá tối thiểu</label>
+                <label className="block text-sm text-gray-600 mb-1 text-left">Giá tối đa</label>
                 <input
                   type="number"
                   placeholder="VD: 3000000"
-                  value={priceMin}
-                  onChange={(e) => setPriceMin(e.target.value)}
+                  value={priceMax}
+                  onChange={(e) => setPriceMax(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') fetchProperties(); }}
                   className="w-full border border-gray-300 rounded px-3 py-2 text-gray-800 text-sm outline-none"
                 />
