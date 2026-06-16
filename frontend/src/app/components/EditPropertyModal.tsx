@@ -345,7 +345,7 @@ export function EditPropertyModal({ propertyId, onClose, onSuccess }: EditProper
                 {uploading ? (
                   <div>
                     <div className="w-6 h-6 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                    <p className="text-xs text-blue-700 font-medium">Đang tải ảnh lên Cloudinary...</p>
+                    <p className="text-xs text-blue-700 font-medium">Đang tải ảnh...</p>
                   </div>
                 ) : (
                   <div>

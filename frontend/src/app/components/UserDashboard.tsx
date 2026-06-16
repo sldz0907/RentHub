@@ -193,7 +193,6 @@ export function UserDashboard() {
   const navItems = [
     { id: 'listings', label: 'Tin đăng của tôi', icon: <List className="w-5 h-5" /> },
     { id: 'notifications', label: 'Thông báo', icon: <Bell className="w-5 h-5" />, badge: unreadNotifications },
-    { id: 'settings', label: 'Cài đặt tài khoản', icon: <Settings className="w-5 h-5" /> },
   ];
 
   const Sidebar = () => (
@@ -277,10 +276,6 @@ export function UserDashboard() {
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden">
               <Menu className="w-5 h-5 text-gray-600" />
             </button>
-            <div>
-              <h1 className="font-bold text-gray-800">Dashboard của tôi</h1>
-              <p className="text-xs text-gray-500">Quản lý tin đăng cho thuê</p>
-            </div>
           </div>
           <button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded">
             <Bell className="w-5 h-5" />
@@ -464,14 +459,7 @@ export function UserDashboard() {
             </div>
           )}
 
-          {/* Settings Tab */}
-          {activeTab === 'settings' && (
-            <div className="bg-white border border-gray-200 rounded p-8 text-center">
-              <Settings className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <h3 className="font-bold text-gray-800 mb-1">Cài đặt tài khoản</h3>
-              <p className="text-sm text-gray-500">Quản lý thông tin tài khoản của bạn</p>
-            </div>
-          )}
+
         </div>
       </main>
 

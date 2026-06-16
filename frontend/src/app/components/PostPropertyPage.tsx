@@ -331,7 +331,7 @@ export function PostPropertyPage() {
                 {uploading ? (
                   <div className="py-4">
                     <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                    <p className="text-sm text-blue-700 font-medium">Đang tải ảnh lên máy chủ Cloudinary...</p>
+                    <p className="text-sm text-blue-700 font-medium">Đang tải ảnh...</p>
                   </div>
                 ) : (
                   <>
