@@ -4,12 +4,9 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
+    "dev": "vite",
     "build": "vite build",
-    "dev": "vite --host",
-    "client": "npm run dev",
-    "server": "npm run server",
-    "both": "concurrently \"npm run client\" \"npm run server\"",
-    "setup-db": "node setup-database.js"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",

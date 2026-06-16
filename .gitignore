@@ -4,3 +4,5 @@ config.json
 credentials.json
 *.pem
 *.key
+dist
+build

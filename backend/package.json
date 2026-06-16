@@ -4,9 +4,8 @@
   "description": "Hệ thống kết nối cho thuê bất động sản - RentHub Backend",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "server": "nodemon src/server.js"
+    "start": "node src/server.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
