@@ -331,7 +331,6 @@ export function UserDashboard() {
                           <th className="px-4 py-3 text-left text-gray-600 font-medium">Bất động sản</th>
                           <th className="px-4 py-3 text-left text-gray-600 font-medium">Giá thuê</th>
                           <th className="px-4 py-3 text-left text-gray-600 font-medium">Trạng thái</th>
-                          <th className="px-4 py-3 text-left text-gray-600 font-medium">Lượt xem</th>
                           <th className="px-4 py-3 text-left text-gray-600 font-medium">Thao tác</th>
                         </tr>
                       </thead>
@@ -354,7 +353,6 @@ export function UserDashboard() {
                                 {STATUS_LABELS[property.status] || property.status}
                               </span>
                             </td>
-                            <td className="px-4 py-3 text-gray-600">{property.views}</td>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-1">
                                 <button
@@ -403,8 +401,7 @@ export function UserDashboard() {
                             </span>
                           </div>
                         </div>
-                        <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                          <span className="text-xs text-gray-500">{property.views} lượt xem</span>
+                        <div className="flex justify-end items-center pt-2 border-t border-gray-100">
                           <div className="flex gap-1">
                             <button
                               onClick={() => toggleStatus(property.id)}
