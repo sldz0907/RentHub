@@ -34,11 +34,11 @@ export function AdminDashboard() {
         };
 
         const [revRes, statRes, repRes, usersRes, propRes] = await Promise.all([
-          fetch('http://localhost:5000/api/admin/stats/revenue', { headers }),
-          fetch('http://localhost:5000/api/admin/stats/properties', { headers }),
-          fetch('http://localhost:5000/api/admin/reports', { headers }),
-          fetch('http://localhost:5000/api/admin/users', { headers }),
-          fetch('http://localhost:5000/api/admin/properties/list', { headers })
+          fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/admin/stats/revenue`, { headers }),
+          fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/admin/stats/properties`, { headers }),
+          fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/admin/reports`, { headers }),
+          fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/admin/users`, { headers }),
+          fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/admin/properties/list`, { headers })
         ]);
 
         const revData = await revRes.json();
@@ -82,7 +82,7 @@ export function AdminDashboard() {
         }
       }
 
-      const res = await fetch(`http://localhost:5000/api/admin/reports/${reportId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/admin/reports/${reportId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -113,7 +113,7 @@ export function AdminDashboard() {
 
   const handleToggleUserStatus = async (userId: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/users/${userId}/status`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/admin/users/${userId}/status`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('renthub_token')}`
@@ -145,7 +145,7 @@ export function AdminDashboard() {
         }
       }
 
-      const res = await fetch(`http://localhost:5000/api/admin/properties/${propertyId}/status`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/admin/properties/${propertyId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

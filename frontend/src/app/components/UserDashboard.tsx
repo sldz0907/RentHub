@@ -58,7 +58,7 @@ export function UserDashboard() {
         setLoading(false);
         return;
       }
-      const response = await fetch('http://localhost:5000/api/properties/user/me', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/properties/user/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -78,7 +78,7 @@ export function UserDashboard() {
     try {
       const token = localStorage.getItem('renthub_token');
       if (!token) return;
-      const res = await fetch('http://localhost:5000/api/users/notifications', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/users/notifications`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -101,7 +101,7 @@ export function UserDashboard() {
       const markAsRead = async () => {
         try {
           const token = localStorage.getItem('renthub_token');
-          await fetch('http://localhost:5000/api/users/notifications/read', {
+          await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/users/notifications/read`, {
             method: 'PUT',
             headers: { 'Authorization': `Bearer ${token}` }
           });
@@ -129,7 +129,7 @@ export function UserDashboard() {
     
     try {
       const token = localStorage.getItem('renthub_token');
-      const response = await fetch(`http://localhost:5000/api/properties/${id}/status`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/properties/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -159,7 +159,7 @@ export function UserDashboard() {
       setDeleteLoading(true);
       setDeleteError('');
       const token = localStorage.getItem('renthub_token');
-      const response = await fetch(`http://localhost:5000/api/properties/${deletingPropertyId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/properties/${deletingPropertyId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

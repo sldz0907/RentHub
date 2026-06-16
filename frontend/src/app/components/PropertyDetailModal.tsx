@@ -106,7 +106,7 @@ export function PropertyDetailModal({ propertyId, onClose }: PropertyDetailModal
 
     try {
       setIsSubmittingReport(true);
-      const res = await fetch('http://localhost:5000/api/reports', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/reports`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -136,7 +136,7 @@ export function PropertyDetailModal({ propertyId, onClose }: PropertyDetailModal
     const fetchPropertyDetails = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:5000/api/properties/${propertyId}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/properties/${propertyId}`);
         const data = await response.json();
         if (data.success) {
           setProperty(data.data);

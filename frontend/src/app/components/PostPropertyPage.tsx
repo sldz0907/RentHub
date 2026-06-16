@@ -86,7 +86,7 @@ export function PostPropertyPage() {
         uploadData.append('images', files[i]);
       }
 
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -138,7 +138,7 @@ export function PostPropertyPage() {
         city = addressParts[0].trim();
       }
 
-      const response = await fetch('http://localhost:5000/api/properties', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/properties`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

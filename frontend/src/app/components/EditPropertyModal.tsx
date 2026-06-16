@@ -63,7 +63,7 @@ export function EditPropertyModal({ propertyId, onClose, onSuccess }: EditProper
     const fetchDetails = async () => {
       try {
         setFetching(true);
-        const response = await fetch(`http://localhost:5000/api/properties/${propertyId}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/properties/${propertyId}`);
         const data = await response.json();
         if (data.success) {
           const prop: Property = data.data;
@@ -117,7 +117,7 @@ export function EditPropertyModal({ propertyId, onClose, onSuccess }: EditProper
         uploadData.append('images', files[i]);
       }
 
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -166,7 +166,7 @@ export function EditPropertyModal({ propertyId, onClose, onSuccess }: EditProper
         city = addressParts[0].trim();
       }
 
-      const response = await fetch(`http://localhost:5000/api/properties/${propertyId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/properties/${propertyId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

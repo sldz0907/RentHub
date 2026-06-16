@@ -31,7 +31,7 @@ export function LandingPage() {
       params.append('maxPrice', priceMax);
     }
 
-    fetch(`http://localhost:5000/api/properties?${params.toString()}`)
+    fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/properties?${params.toString()}`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
