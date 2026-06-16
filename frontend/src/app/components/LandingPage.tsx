@@ -1,4 +1,4 @@
-import { Search, MapPin, Home, LogIn, UserPlus, PlusCircle, LogOut, LayoutDashboard } from 'lucide-react';
+import { Search, MapPin, Home, LogIn, UserPlus, PlusCircle, LogOut, LayoutDashboard, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
@@ -14,6 +14,8 @@ export function LandingPage() {
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const itemsPerPage = 8;
 
   const fetchProperties = () => {
     setLoading(true);
@@ -36,6 +38,7 @@ export function LandingPage() {
       .then(data => {
         if (data.success) {
           setProperties(data.data);
+          setCurrentPage(0);
         }
         setLoading(false);
       })
@@ -50,6 +53,8 @@ export function LandingPage() {
   }, [propertyType]);
 
   const filtered = properties;
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const displayProperties = filtered.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 
   const getTypeLabel = (type: string) => {
     const map: Record<string, string> = { apartment: 'Căn hộ', house: 'Nhà nguyên căn', room: 'Phòng trọ', condo: 'Chung cư' };
@@ -188,37 +193,61 @@ export function LandingPage() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-10 text-gray-500">Không tìm thấy bất động sản nào phù hợp.</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {filtered.map((listing) => (
-              <div key={listing.id} className="border border-gray-200 rounded overflow-hidden bg-white flex flex-col">
-                <div className="relative h-44">
-                  <img
-                    src={listing.images && listing.images.length > 0 ? listing.images[0] : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800'}
-                    alt={listing.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <span className="absolute top-2 left-2 bg-blue-700 text-white text-xs px-2 py-0.5 rounded">
-                    {getTypeLabel(listing.property_type)}
-                  </span>
-                </div>
-                <div className="p-4 flex flex-col flex-1">
-                  <h3 className="font-semibold text-gray-800 mb-1 text-sm line-clamp-2">{listing.title}</h3>
-                  <p className="text-blue-700 font-bold mb-1">{Number(listing.price).toLocaleString('vi-VN')} VND/tháng</p>
-                  <p className="text-xs text-gray-500 mb-1">{listing.area} m²</p>
-                  <p className="text-xs text-gray-500 mb-3 line-clamp-1">{listing.address}, {listing.district}, {listing.city}</p>
-                  
-                  <div className="mt-auto">
-                    <button
-                      onClick={() => setSelectedPropertyId(listing.id)}
-                      className="w-full border border-blue-700 text-blue-700 py-1.5 rounded text-sm hover:bg-blue-50 text-center font-medium block transition duration-200"
-                    >
-                      Xem chi tiết
-                    </button>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {displayProperties.map((listing) => (
+                <div key={listing.id} className="border border-gray-200 rounded overflow-hidden bg-white flex flex-col">
+                  <div className="relative h-44">
+                    <img
+                      src={listing.images && listing.images.length > 0 ? listing.images[0] : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800'}
+                      alt={listing.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <span className="absolute top-2 left-2 bg-blue-700 text-white text-xs px-2 py-0.5 rounded">
+                      {getTypeLabel(listing.property_type)}
+                    </span>
+                  </div>
+                  <div className="p-4 flex flex-col flex-1">
+                    <h3 className="font-semibold text-gray-800 mb-1 text-sm line-clamp-2">{listing.title}</h3>
+                    <p className="text-blue-700 font-bold mb-1">{Number(listing.price).toLocaleString('vi-VN')} VND/tháng</p>
+                    <p className="text-xs text-gray-500 mb-1">{listing.area} m²</p>
+                    <p className="text-xs text-gray-500 mb-3 line-clamp-1">{listing.address}, {listing.district}, {listing.city}</p>
+                    
+                    <div className="mt-auto">
+                      <button
+                        onClick={() => setSelectedPropertyId(listing.id)}
+                        className="w-full border border-blue-700 text-blue-700 py-1.5 rounded text-sm hover:bg-blue-50 text-center font-medium block transition duration-200"
+                      >
+                        Xem chi tiết
+                      </button>
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+            
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center mt-10 gap-6">
+                <button 
+                  onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                  disabled={currentPage === 0}
+                  className="p-2 rounded-full border border-gray-300 text-gray-600 disabled:opacity-30 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-700 transition"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <span className="text-sm text-gray-600 font-medium">
+                  Trang {currentPage + 1} / {totalPages}
+                </span>
+                <button 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+                  disabled={currentPage === totalPages - 1}
+                  className="p-2 rounded-full border border-gray-300 text-gray-600 disabled:opacity-30 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-700 transition"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
 
