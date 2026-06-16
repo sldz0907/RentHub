@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, MapPin, ChevronLeft, ChevronRight, Phone, Mail, User, ShieldAlert, Award, Calendar, Video } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router';
+import { toast } from 'sonner';
 
 interface PropertyDetail {
   id: number;
@@ -83,7 +84,7 @@ export function PropertyDetailModal({ propertyId, onClose }: PropertyDetailModal
   const handleOpenReport = () => {
     if (!propertyId) return;
     if (!user) {
-      alert("Bạn cần đăng nhập để báo cáo tin đăng.");
+      toast.error("Bạn cần đăng nhập để báo cáo tin đăng.");
       navigate('/login');
       return;
     }
@@ -99,7 +100,7 @@ export function PropertyDetailModal({ propertyId, onClose }: PropertyDetailModal
       : reportReason;
 
     if (!finalReason) {
-      alert("Vui lòng chọn hoặc nhập lý do báo cáo.");
+      toast.error("Vui lòng chọn hoặc nhập lý do báo cáo.");
       return;
     }
 
@@ -115,15 +116,15 @@ export function PropertyDetailModal({ propertyId, onClose }: PropertyDetailModal
       });
       const data = await res.json();
       if (data.success) {
-        alert("Báo cáo thành công. Ban quản trị sẽ xử lý sớm!");
+        toast.success("Báo cáo thành công. Ban quản trị sẽ xử lý sớm!");
         setShowReportModal(false);
         setReportReason('');
         setCustomReason('');
       } else {
-        alert(data.message || "Lỗi báo cáo");
+        toast.error(data.message || "Lỗi báo cáo");
       }
     } catch (error) {
-      alert("Lỗi kết nối tới server");
+      toast.error("Lỗi kết nối tới server");
     } finally {
       setIsSubmittingReport(false);
     }
@@ -140,12 +141,12 @@ export function PropertyDetailModal({ propertyId, onClose }: PropertyDetailModal
         if (data.success) {
           setProperty(data.data);
         } else {
-          alert(data.message || 'Lỗi khi tải chi tiết tin đăng');
+          toast.error(data.message || 'Lỗi khi tải chi tiết tin đăng');
           onClose();
         }
       } catch (err) {
         console.error('Error fetching property details:', err);
-        alert('Lỗi kết nối tới máy chủ');
+        toast.error('Lỗi kết nối tới máy chủ');
         onClose();
       } finally {
         setLoading(false);

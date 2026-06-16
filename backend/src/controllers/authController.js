@@ -1,4 +1,4 @@
-const { mssql } = require('../config/db');
+const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -9,20 +9,24 @@ exports.register = async (req, res) => {
             return res.status(400).json({ message: "Vui lòng điền đầy đủ các trường bắt buộc" });
         }
         
-        // Use parameterized query to verify existing user safely
-        const checkUser = await mssql.query`SELECT id FROM Users WHERE username = ${username} OR email = ${email}`;
-        if (checkUser.recordset.length > 0) {
+        const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+        if (existingUser) {
             return res.status(400).json({ message: "Username hoặc Email đã tồn tại" });
         }
         
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
         
-        // Use parameterized query to insert user securely
-        await mssql.query`
-            INSERT INTO Users (username, password, email, phone, role, is_active) 
-            VALUES (${username}, ${hashedPassword}, ${email}, ${phone}, 'USER', 1)
-        `;
+        const newUser = new User({
+            username,
+            password: hashedPassword,
+            email,
+            phone,
+            role: 'USER',
+            is_active: true
+        });
+        
+        await newUser.save();
         
         res.status(201).json({ success: true, message: "Đăng ký tài khoản thành công!" });
     } catch (error) {
@@ -37,15 +41,13 @@ exports.login = async (req, res) => {
             return res.status(400).json({ message: "Vui lòng điền đầy đủ username và password" });
         }
         
-        // Use parameterized query to fetch user safely
-        const result = await mssql.query`SELECT * FROM Users WHERE username = ${username} OR email = ${username}`;
-        const user = result.recordset[0];
+        const user = await User.findOne({ $or: [{ username }, { email: username }] });
         
         if (!user) {
             return res.status(401).json({ message: "Tài khoản hoặc mật khẩu không đúng" });
         }
         
-        if (user.is_active === false || user.is_active === 0) {
+        if (user.is_active === false) {
             return res.status(403).json({ message: "Tài khoản đã bị khóa" });
         }
         
@@ -55,7 +57,7 @@ exports.login = async (req, res) => {
         }
         
         const token = jwt.sign(
-            { id: user.id, username: user.username, role: user.role },
+            { id: user._id, username: user.username, role: user.role },
             process.env.JWT_SECRET || 'renthub_secret_key',
             { expiresIn: '24h' }
         );
@@ -64,7 +66,7 @@ exports.login = async (req, res) => {
             success: true,
             token,
             user: { 
-                id: user.id, 
+                id: user._id, 
                 username: user.username, 
                 email: user.email, 
                 phone: user.phone, 

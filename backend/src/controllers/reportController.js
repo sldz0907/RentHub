@@ -1,4 +1,4 @@
-const { mssql } = require('../config/db');
+const Report = require('../models/Report');
 
 exports.createReport = async (req, res) => {
     try {
@@ -9,10 +9,12 @@ exports.createReport = async (req, res) => {
             return res.status(400).json({ message: "Thiếu thông tin báo cáo" });
         }
 
-        await mssql.query`
-            INSERT INTO Reports (reporter_id, property_id, reason, status)
-            VALUES (${reporter_id}, ${property_id}, ${reason}, 'PENDING')
-        `;
+        await Report.create({
+            reporter_id,
+            property_id,
+            reason,
+            status: 'PENDING'
+        });
 
         res.status(201).json({ success: true, message: "Gửi báo cáo thành công!" });
     } catch (error) {

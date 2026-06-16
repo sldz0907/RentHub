@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Upload, Check } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Property {
   id: number;
@@ -79,12 +80,12 @@ export function EditPropertyModal({ propertyId, onClose, onSuccess }: EditProper
           setSelectedFeatures(prop.features || []);
           setUploadedImages(prop.images || []);
         } else {
-          alert('Lỗi tải thông tin chi tiết bài viết.');
+          toast.error('Lỗi tải thông tin chi tiết bài viết.');
           onClose();
         }
       } catch (err) {
         console.error('Error fetching property details:', err);
-        alert('Lỗi kết nối máy chủ.');
+        toast.error('Lỗi kết nối máy chủ.');
         onClose();
       } finally {
         setFetching(false);
@@ -128,11 +129,11 @@ export function EditPropertyModal({ propertyId, onClose, onSuccess }: EditProper
       if (data.success && data.urls) {
         setUploadedImages((prev) => [...prev, ...data.urls]);
       } else {
-        alert(data.message || 'Lỗi khi tải ảnh.');
+        toast.error(data.message || 'Lỗi khi tải ảnh.');
       }
     } catch (err) {
       console.error(err);
-      alert('Không thể tải ảnh lên.');
+      toast.error('Không thể tải ảnh lên.');
     } finally {
       setUploading(false);
     }
@@ -145,7 +146,7 @@ export function EditPropertyModal({ propertyId, onClose, onSuccess }: EditProper
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.price || !formData.area || !formData.address) {
-      alert('Vui lòng điền đầy đủ các trường bắt buộc (*)');
+      toast.error('Vui lòng điền đầy đủ các trường bắt buộc (*)');
       return;
     }
 
@@ -189,15 +190,15 @@ export function EditPropertyModal({ propertyId, onClose, onSuccess }: EditProper
 
       const data = await response.json();
       if (data.success) {
-        alert('Cập nhật tin đăng thành công!');
+        toast.success('Cập nhật tin đăng thành công!');
         onSuccess();
         onClose();
       } else {
-        alert(data.message || 'Lỗi cập nhật.');
+        toast.error(data.message || 'Lỗi cập nhật.');
       }
     } catch (err) {
       console.error(err);
-      alert('Lỗi kết nối máy chủ.');
+      toast.error('Lỗi kết nối máy chủ.');
     } finally {
       setLoading(false);
     }

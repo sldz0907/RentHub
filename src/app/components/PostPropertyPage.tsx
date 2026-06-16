@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, Upload, X, Check, Home, QrCode } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { toast } from 'sonner';
 
 const FEATURES = [
   { id: 'ac', label: 'Điều hòa' },
@@ -25,6 +26,28 @@ export function PostPropertyPage() {
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isWaitingPayment, setIsWaitingPayment] = useState(false);
+  const [paymentCountdown, setPaymentCountdown] = useState(5);
+  const [paymentMethod, setPaymentMethod] = useState('');
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isWaitingPayment && paymentCountdown > 0) {
+      timer = setTimeout(() => {
+        setPaymentCountdown(prev => prev - 1);
+      }, 1000);
+    } else if (isWaitingPayment && paymentCountdown === 0) {
+      handleSubmit();
+      setIsWaitingPayment(false);
+    }
+    return () => clearTimeout(timer);
+  }, [isWaitingPayment, paymentCountdown]);
+
+  const handlePaymentInitiate = (method: string) => {
+    setPaymentMethod(method);
+    setIsWaitingPayment(true);
+    setPaymentCountdown(5);
+  };
 
   const [formData, setFormData] = useState({
     title: '',
@@ -53,7 +76,7 @@ export function PostPropertyPage() {
       setUploading(true);
       const token = localStorage.getItem('renthub_token');
       if (!token) {
-        alert('Bạn cần đăng nhập để tải ảnh lên.');
+        toast.error('Bạn cần đăng nhập để tải ảnh lên.');
         navigate('/login');
         return;
       }
@@ -75,11 +98,11 @@ export function PostPropertyPage() {
       if (data.success && data.urls) {
         setUploadedImages((prev) => [...prev, ...data.urls]);
       } else {
-        alert(data.message || 'Lỗi khi tải ảnh lên.');
+        toast.error(data.message || 'Lỗi khi tải ảnh lên.');
       }
     } catch (err) {
       console.error('Error uploading images:', err);
-      alert('Không thể tải ảnh lên, vui lòng kiểm tra kết nối.');
+      toast.error('Không thể tải ảnh lên, vui lòng kiểm tra kết nối.');
     } finally {
       setUploading(false);
     }
@@ -91,7 +114,7 @@ export function PostPropertyPage() {
 
   const handleSubmit = async () => {
     if (!formData.title || !formData.price || !formData.area || !formData.address) {
-      alert('Vui lòng điền đầy đủ các thông tin bắt buộc (*)');
+      toast.error('Vui lòng điền đầy đủ các thông tin bắt buộc (*)');
       return;
     }
 
@@ -99,7 +122,7 @@ export function PostPropertyPage() {
       setLoading(true);
       const token = localStorage.getItem('renthub_token');
       if (!token) {
-        alert('Bạn cần đăng nhập để đăng tin.');
+        toast.error('Bạn cần đăng nhập để đăng tin.');
         navigate('/login');
         return;
       }
@@ -139,14 +162,14 @@ export function PostPropertyPage() {
       const data = await response.json();
       if (data.success) {
         setShowPaymentModal(false);
-        alert('Đăng tin bất động sản thành công!');
+        toast.success('Đăng tin bất động sản thành công!');
         navigate('/dashboard');
       } else {
-        alert(data.message || 'Lỗi khi đăng tin.');
+        toast.error(data.message || 'Lỗi khi đăng tin.');
       }
     } catch (err) {
       console.error('Lỗi khi đăng tin:', err);
-      alert('Kết nối tới server thất bại.');
+      toast.error('Kết nối tới server thất bại.');
     } finally {
       setLoading(false);
     }
@@ -426,56 +449,79 @@ export function PostPropertyPage() {
       {/* Payment Modal */}
       {showPaymentModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded p-6 max-w-sm w-full relative shadow-lg">
+          <div className="bg-white rounded p-6 max-w-sm w-full relative shadow-lg text-center">
             <button
-              onClick={() => setShowPaymentModal(false)}
+              onClick={() => {
+                setShowPaymentModal(false);
+                setIsWaitingPayment(false);
+              }}
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="text-center mb-5">
-              <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <QrCode className="w-7 h-7 text-blue-700" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-1">Phí đăng tin</h3>
-              <p className="text-sm text-gray-500">Thanh toán để đăng tin ngay lập tức</p>
-            </div>
+            {!isWaitingPayment ? (
+              <>
+                <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <QrCode className="w-7 h-7 text-blue-700" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-800 mb-1">Phí đăng tin</h3>
+                <p className="text-sm text-gray-500 mb-5">Thanh toán để đăng tin ngay lập tức</p>
 
-            <div className="bg-gray-50 border border-gray-200 rounded p-4 mb-5">
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600">Phí đăng tin</span>
-                <span className="font-medium">10,000 VND</span>
-              </div>
-              <hr className="my-2" />
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-800">Tổng thanh toán</span>
-                <span className="text-blue-700 font-bold text-lg">10,000 VND</span>
-              </div>
-            </div>
+                <div className="bg-gray-50 border border-gray-200 rounded p-4 mb-5 text-left">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-gray-600">Phí đăng tin</span>
+                    <span className="font-medium">10,000 VND</span>
+                  </div>
+                  <hr className="my-2" />
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-800">Tổng thanh toán</span>
+                    <span className="text-blue-700 font-bold text-lg">10,000 VND</span>
+                  </div>
+                </div>
 
-            <div className="space-y-3">
-              <button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-3 rounded font-medium hover:bg-purple-700 disabled:opacity-50 transition"
-              >
-                <QrCode className="w-5 h-5" />
-                {loading ? 'Đang xử lý...' : 'Thanh toán qua Momo'}
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded font-medium hover:bg-blue-700 disabled:opacity-50 transition"
-              >
-                <QrCode className="w-5 h-5" />
-                {loading ? 'Đang xử lý...' : 'Thanh toán qua VNPAY'}
-              </button>
-            </div>
-
-            <p className="text-xs text-gray-400 text-center mt-4">
-              🔒 Thanh toán bảo mật - Mã hóa SSL
-            </p>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => handlePaymentInitiate('Momo')}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-3 rounded font-medium hover:bg-purple-700 transition"
+                  >
+                    <QrCode className="w-5 h-5" />
+                    Thanh toán qua Momo
+                  </button>
+                  <button
+                    onClick={() => handlePaymentInitiate('VNPAY')}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded font-medium hover:bg-blue-700 transition"
+                  >
+                    <QrCode className="w-5 h-5" />
+                    Thanh toán qua VNPAY
+                  </button>
+                </div>
+                <p className="text-xs text-gray-400 mt-4">🔒 Thanh toán bảo mật - Mã hóa SSL</p>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-bold text-gray-800 mb-2">Quét mã QR để thanh toán</h3>
+                <p className="text-sm text-gray-500 mb-4">Phương thức: {paymentMethod}</p>
+                
+                <div className="bg-gray-50 p-2 rounded-lg border border-gray-200 inline-block mb-4">
+                  <img 
+                    src="https://img.vietqr.io/image/970422-0123456789-compact2.png?amount=10000&addInfo=ThanhToanRentHub&accountName=ADMIN" 
+                    alt="VietQR" 
+                    className="w-48 h-48 mx-auto"
+                  />
+                </div>
+                
+                <div className="bg-blue-50 text-blue-800 p-3 rounded text-sm mb-4">
+                  <p className="font-medium flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                    Đang chờ xác nhận thanh toán...
+                  </p>
+                  <p className="mt-1 text-xs text-blue-600">Bài đăng sẽ tự động được duyệt sau khi nhận tiền ({paymentCountdown}s)</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

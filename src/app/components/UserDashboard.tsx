@@ -3,6 +3,7 @@ import { Home, List, Bell, Settings, Edit, Eye, EyeOff, Trash2, Menu, X, LogOut,
 import { useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { EditPropertyModal } from './EditPropertyModal';
+import { toast } from 'sonner';
 
 type PropertyStatus = 'ACTIVE' | 'PENDING_PAYMENT' | 'BANNED' | 'RENTED';
 
@@ -36,7 +37,8 @@ export function UserDashboard() {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('listings');
-  const [unreadNotifications] = useState(3);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [editingPropertyId, setEditingPropertyId] = useState<number | null>(null);
   const [deletingPropertyId, setDeletingPropertyId] = useState<number | null>(null);
   const [deletePassword, setDeletePassword] = useState('');
@@ -72,16 +74,53 @@ export function UserDashboard() {
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem('renthub_token');
+      if (!token) return;
+      const res = await fetch('http://localhost:5000/api/users/notifications', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setNotifications(data.data);
+        setUnreadNotifications(data.data.filter((n: any) => !n.is_read).length);
+      }
+    } catch (err) {
+      console.error('Lỗi khi lấy thông báo:', err);
+    }
+  };
+
   useEffect(() => {
     fetchMyProperties();
+    fetchNotifications();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'notifications' && unreadNotifications > 0) {
+      const markAsRead = async () => {
+        try {
+          const token = localStorage.getItem('renthub_token');
+          await fetch('http://localhost:5000/api/users/notifications/read', {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          setUnreadNotifications(0);
+          setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+        } catch (err) {
+          console.error(err);
+        }
+      };
+      markAsRead();
+    }
+  }, [activeTab, unreadNotifications]);
 
   const toggleStatus = async (id: number) => {
     const prop = properties.find(p => p.id === id);
     if (!prop) return;
     
     if (prop.status === 'BANNED') {
-      alert('Tin đăng này đã bị khóa bởi quản trị viên, không thể thay đổi trạng thái.');
+      toast.error('Tin đăng này đã bị khóa bởi quản trị viên, không thể thay đổi trạng thái.');
       return;
     }
     
@@ -102,11 +141,11 @@ export function UserDashboard() {
       if (data.success) {
         setProperties(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
       } else {
-        alert(data.message || 'Lỗi khi cập nhật trạng thái.');
+        toast.error(data.message || 'Lỗi khi cập nhật trạng thái.');
       }
     } catch (err) {
       console.error('Lỗi toggle status:', err);
-      alert('Lỗi kết nối tới máy chủ.');
+      toast.error('Lỗi kết nối tới máy chủ.');
     }
   };
 
@@ -133,7 +172,7 @@ export function UserDashboard() {
         setProperties(prev => prev.filter(p => p.id !== deletingPropertyId));
         setDeletingPropertyId(null);
         setDeletePassword('');
-        alert('Xóa bài đăng thành công!');
+        toast.success('Xóa bài đăng thành công!');
       } else {
         setDeleteError(data.message || 'Mật khẩu xác minh không chính xác!');
       }
@@ -402,14 +441,28 @@ export function UserDashboard() {
             <div className="bg-white border border-gray-200 rounded p-4">
               <h3 className="font-bold text-gray-800 mb-4">Thông báo</h3>
               <div className="space-y-3">
-                <div className="p-3 bg-green-50 border border-green-200 rounded text-sm">
-                  <p className="text-green-800">Tin "Chung cư cao cấp" đã được đánh dấu là đã cho thuê</p>
-                  <span className="text-xs text-green-600">1 ngày trước</span>
-                </div>
-                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
-                  <p className="text-yellow-800">Chờ thanh toán cho tin "Nhà nguyên căn có sân vườn"</p>
-                  <span className="text-xs text-yellow-600">3 ngày trước</span>
-                </div>
+                {notifications.length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">Bạn chưa có thông báo nào.</p>
+                ) : (
+                  notifications.map(notification => (
+                    <div key={notification._id} className={`p-3 border rounded text-sm ${
+                      notification.type === 'ERROR' ? 'bg-red-50 border-red-200 text-red-800' :
+                      notification.type === 'SUCCESS' ? 'bg-green-50 border-green-200 text-green-800' :
+                      notification.type === 'WARNING' ? 'bg-yellow-50 border-yellow-200 text-yellow-800' :
+                      'bg-blue-50 border-blue-200 text-blue-800'
+                    }`}>
+                      <p>{notification.message}</p>
+                      <span className={`text-xs mt-1 block ${
+                        notification.type === 'ERROR' ? 'text-red-600' :
+                        notification.type === 'SUCCESS' ? 'text-green-600' :
+                        notification.type === 'WARNING' ? 'text-yellow-600' :
+                        'text-blue-600'
+                      }`}>
+                        {new Date(notification.created_at).toLocaleString('vi-VN')}
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}
