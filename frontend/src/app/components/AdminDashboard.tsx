@@ -23,6 +23,14 @@ export function AdminDashboard() {
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
   const [propertyStats, setPropertyStats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    type: 'ban_report' | 'ban_property' | null;
+    targetId: string | number | null;
+    title: string;
+    description: string;
+  }>({ isOpen: false, type: null, targetId: null, title: '', description: '' });
+  const [modalReason, setModalReason] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,17 +79,8 @@ export function AdminDashboard() {
     navigate('/');
   };
 
-  const processReport = async (reportId: number, action: 'ban' | 'dismiss') => {
+  const processReport = async (reportId: number, action: 'ban' | 'dismiss', reason: string = '') => {
     try {
-      let reason = '';
-      if (action === 'ban') {
-        reason = window.prompt('Vui lòng nhập lý do khóa bài đăng do vi phạm:') || '';
-        if (!reason.trim()) {
-          toast.error('Bắt buộc phải nhập lý do khóa bài');
-          return;
-        }
-      }
-
       const res = await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/admin/reports/${reportId}`, {
         method: 'PUT',
         headers: {
@@ -102,9 +101,14 @@ export function AdminDashboard() {
   };
 
   const handleBan = (reportId: number) => {
-    if (confirm("Bạn có chắc chắn muốn khóa tin đăng này?")) {
-      processReport(reportId, 'ban');
-    }
+    setModalState({
+      isOpen: true,
+      type: 'ban_report',
+      targetId: reportId,
+      title: 'Khóa tin đăng do vi phạm',
+      description: 'Bạn có chắc chắn muốn khóa tin đăng này? Vui lòng nhập lý do:'
+    });
+    setModalReason('');
   };
 
   const handleDismiss = (reportId: number) => {
@@ -131,20 +135,8 @@ export function AdminDashboard() {
     }
   };
 
-  const handleTogglePropertyStatus = async (propertyId: string) => {
+  const executeTogglePropertyStatus = async (propertyId: string, reason: string = '') => {
     try {
-      const property = allProperties.find(p => p._id === propertyId);
-      const isBanning = property && property.status !== 'BANNED';
-      
-      let reason = '';
-      if (isBanning) {
-        reason = window.prompt('Vui lòng nhập lý do khóa bài đăng này:') || '';
-        if (!reason.trim()) {
-          toast.error('Bắt buộc phải nhập lý do khóa bài');
-          return;
-        }
-      }
-
       const res = await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/admin/properties/${propertyId}/status`, {
         method: 'PUT',
         headers: {
@@ -162,6 +154,24 @@ export function AdminDashboard() {
       }
     } catch (err) {
       toast.error('Lỗi kết nối');
+    }
+  };
+
+  const handleTogglePropertyStatus = async (propertyId: string) => {
+    const property = allProperties.find(p => p._id === propertyId);
+    const isBanning = property && property.status !== 'BANNED';
+    
+    if (isBanning) {
+      setModalState({
+        isOpen: true,
+        type: 'ban_property',
+        targetId: propertyId,
+        title: 'Khóa bài đăng',
+        description: 'Vui lòng nhập lý do khóa bài đăng này:'
+      });
+      setModalReason('');
+    } else {
+      executeTogglePropertyStatus(propertyId, '');
     }
   };
 
@@ -625,6 +635,62 @@ export function AdminDashboard() {
           )}
         </div>
       </main>
+
+      {modalState.isOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded p-6 w-full max-w-md shadow-xl border border-gray-200">
+            <h3 className="font-bold text-gray-800 text-lg mb-2">{modalState.title}</h3>
+            <p className="text-sm text-gray-600 mb-4">{modalState.description}</p>
+            <input
+              type="text"
+              value={modalReason}
+              onChange={(e) => setModalReason(e.target.value)}
+              placeholder="Nhập lý do (bắt buộc)..."
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none mb-5 focus:border-blue-700"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  if (!modalReason.trim()) {
+                    toast.error('Bắt buộc phải nhập lý do');
+                    return;
+                  }
+                  if (modalState.type === 'ban_report') {
+                    processReport(modalState.targetId as number, 'ban', modalReason);
+                  } else if (modalState.type === 'ban_property') {
+                    executeTogglePropertyStatus(modalState.targetId as string, modalReason);
+                  }
+                  setModalState({ ...modalState, isOpen: false });
+                }
+              }}
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setModalState({ ...modalState, isOpen: false })}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded text-sm hover:bg-gray-200 font-medium transition"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => {
+                  if (!modalReason.trim()) {
+                    toast.error('Bắt buộc phải nhập lý do');
+                    return;
+                  }
+                  if (modalState.type === 'ban_report') {
+                    processReport(modalState.targetId as number, 'ban', modalReason);
+                  } else if (modalState.type === 'ban_property') {
+                    executeTogglePropertyStatus(modalState.targetId as string, modalReason);
+                  }
+                  setModalState({ ...modalState, isOpen: false });
+                }}
+                className="px-4 py-2 bg-blue-700 text-white rounded text-sm hover:bg-blue-800 font-medium transition"
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

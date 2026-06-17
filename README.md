@@ -1,7 +1,7 @@
 
-  # Web Landing Page Design
+  # RentHub
 
-  This is a code bundle for Web Landing Page Design. The original project is available at https://www.figma.com/design/sCuyETz2DF6kqBe99mTnQz/Web-Landing-Page-Design.
+  This is a code bundle for RentHub. The original project is available at https://www.figma.com/design/sCuyETz2DF6kqBe99mTnQz/Web-Landing-Page-Design.
 
   ## Running the code
 
