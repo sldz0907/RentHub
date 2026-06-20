@@ -46,6 +46,18 @@ export function UserDashboard() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [showDeletePassword, setShowDeletePassword] = useState(false);
 
+  const [profilePhone, setProfilePhone] = useState(user?.phone || '');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  useEffect(() => {
+    if (user?.phone) {
+      setProfilePhone(user.phone);
+    }
+  }, [user]);
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -193,7 +205,47 @@ export function UserDashboard() {
   const navItems = [
     { id: 'listings', label: 'Tin đăng của tôi', icon: <List className="w-5 h-5" /> },
     { id: 'notifications', label: 'Thông báo', icon: <Bell className="w-5 h-5" />, badge: unreadNotifications },
+    { id: 'profile', label: 'Tài khoản', icon: <Settings className="w-5 h-5" /> },
   ];
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword && newPassword !== confirmNewPassword) {
+      toast.error('Mật khẩu mới không khớp.');
+      return;
+    }
+
+    try {
+      setProfileLoading(true);
+      const token = localStorage.getItem('renthub_token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "https://rent-hub-xnoh.onrender.com/api"}/users/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          phone: profilePhone,
+          currentPassword: currentPassword || undefined,
+          newPassword: newPassword || undefined
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast.success(data.message);
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+      } else {
+        toast.error(data.message || 'Lỗi khi cập nhật thông tin.');
+      }
+    } catch (err) {
+      console.error('Lỗi cập nhật thông tin:', err);
+      toast.error('Lỗi kết nối tới máy chủ.');
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   const Sidebar = () => (
     <div className="flex flex-col h-full">
@@ -456,6 +508,99 @@ export function UserDashboard() {
                   ))
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Profile Tab */}
+          {activeTab === 'profile' && (
+            <div className="bg-white border border-gray-200 rounded p-6 max-w-2xl mx-auto shadow-sm">
+              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <Settings className="w-6 h-6 text-blue-700" />
+                Cập nhật thông tin cá nhân
+              </h2>
+              <form onSubmit={handleUpdateProfile} className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tên đăng nhập</label>
+                    <input
+                      type="text"
+                      value={user?.username || ''}
+                      disabled
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded bg-gray-50 text-gray-500 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input
+                      type="email"
+                      value={user?.email || ''}
+                      disabled
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded bg-gray-50 text-gray-500 cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
+                  <input
+                    type="tel"
+                    value={profilePhone}
+                    onChange={(e) => setProfilePhone(e.target.value)}
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                    required
+                  />
+                </div>
+
+                <div className="pt-5 mt-5 border-t border-gray-200">
+                  <h3 className="font-semibold text-gray-800 mb-4 text-base">Đổi mật khẩu (Tùy chọn)</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu hiện tại</label>
+                      <input
+                        type="password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        placeholder="Nhập mật khẩu hiện tại nếu muốn đổi mật khẩu"
+                        className="w-full px-3 py-2.5 border border-gray-300 rounded focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới</label>
+                        <input
+                          type="password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          disabled={!currentPassword}
+                          placeholder={currentPassword ? "Nhập mật khẩu mới" : "Cần mật khẩu hiện tại"}
+                          className="w-full px-3 py-2.5 border border-gray-300 rounded focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all disabled:bg-gray-50 disabled:cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu mới</label>
+                        <input
+                          type="password"
+                          value={confirmNewPassword}
+                          onChange={(e) => setConfirmNewPassword(e.target.value)}
+                          disabled={!currentPassword}
+                          placeholder={currentPassword ? "Nhập lại mật khẩu mới" : "Cần mật khẩu hiện tại"}
+                          className="w-full px-3 py-2.5 border border-gray-300 rounded focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all disabled:bg-gray-50 disabled:cursor-not-allowed"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6">
+                  <button
+                    type="submit"
+                    disabled={profileLoading}
+                    className="w-full md:w-auto px-8 py-3 bg-blue-700 text-white font-semibold rounded shadow-sm shadow-blue-700/20 hover:bg-blue-800 hover:shadow-md hover:-translate-y-0.5 focus:ring-4 focus:ring-blue-300 disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none transition-all"
+                  >
+                    {profileLoading ? 'Đang lưu...' : 'Lưu thay đổi'}
+                  </button>
+                </div>
+              </form>
             </div>
           )}
 
